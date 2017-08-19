@@ -29,6 +29,7 @@ char *user_handle(char *buffer)
     {
         int sock = connect_to_server(port_low);
         string str = (string)"select userName from User where userName='" + cJSON_GetObjectItem(json, "userName")->valuestring + "'";
+        cout << str << endl;
         char *res = transfer_string_to_char(str);
         str.clear();
 

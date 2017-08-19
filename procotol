@@ -5,15 +5,23 @@
 (2)operating:
 	user:
 		1.reg
+			userName | password
 		2.login
+			userName | password
 	friend:
 		1.getFriends
+			userName | token
 		2.addFriend
+			userName | friend_name | token
 		3.deleteFriend
+			userName | friend_name | token
 		4.searchFriend
+			userName | friend_name | token
 	message:
 		1.sendMsg
+			userName | friend_name | message | token
 		2.getMsg
+			uesrName | token
 (3)content:
 	user:userName
 	friend:friendName

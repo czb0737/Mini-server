@@ -10,7 +10,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-#include "cJSON.c"
+#include "json.hpp"
+#include <string>
 /*
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,6 +26,7 @@
 #include <errno.h>
 */
 
+using Json = nlohmann::json;
 using namespace std;
 
 #define server_ip "127.0.0.1"
@@ -39,7 +41,6 @@ int main()
     int sin_size = 0;
     char *buffer;
     struct sockaddr_in s_add, c_add;
-    cJSON *json;
 
     cout << "Hello, welcome to client!" << endl;
 
@@ -63,30 +64,53 @@ int main()
         return -1;
     }
     printf("connect ok !\r\n");
-    char *userName = new char[101];
-    char *userName2 = new char[101];
-    char *message = new char[101];
-    int t = 0;
-    cin >> t >> userName >> userName2 >> message;
-
+    string user_name, friend_name;
+    string password;
+    string message;
+    string token;
+    int t = 0, op = 0;
+    // Only register or login
+    cout << "Pleast enter type, operating and user_name: " << endl;
+    cin >> t >> op >> user_name;
 
     while(1)
     {
-        buffer = new char[1024];
+        Json json;
+        json["typer"] = t;
+        json["operating"] = op;
+        json["userName"] = user_name;
+        if (t == 1)
+        {
+            cout << "Pleast enter password: " << endl;
+            cin >> password;
+            json["password"] = password;
+        }
+        else
+        {
+            json["token"] = token;
+        }
+        if (t == 2 && op > 1)
+        {
+            cout << "Pleast enter your friend's name: " << endl;
+            cin >> friend_name;
+            json["userName2"] = friend_name;
+        }
+        if (t == 3 && op == 1)
+        {
+            cout << "Pleast enter your friend's name and message: " << endl;
+            cin >> friend_name >> message;
+            json["userName2"] = friend_name;
+            json["message"] = message;
+        }
 
-        json = cJSON_CreateObject();
-        cJSON_AddNumberToObject(json, "type", 3);
-        cJSON_AddNumberToObject(json, "operating", t);
-        cJSON_AddStringToObject(json, "userName", userName);
-        cJSON_AddStringToObject(json, "userName2", userName2);
-        cJSON_AddStringToObject(json, "message", message);
-        cJSON_AddStringToObject(json, "password", "czb2");
-        cJSON_AddStringToObject(json, "token", "9dc32e9084464446afcf3d89209af910");
+        string s = json.dump();
+        cout << s << endl;
+        int size = s.size();
+        buffer = new char[size + 1];
+        s.copy(buffer, size, 0);
+        buffer[size] = '\0';
 
-        buffer = cJSON_Print(json);
-        cout << buffer << endl;
-
-        if(-1 == write(cfd, buffer, 1024))
+        if(-1 == write(cfd, buffer, size))
         {
             cout << "Fail to send it !" << endl;
         }
@@ -104,6 +128,12 @@ int main()
         buffer[recbytes]='\0';
         printf("%s\r\n",buffer);
 
+        if (t == 1 && op == 2)
+        {
+            auto j = Json::parse(buffer);
+            token = j["token"];
+        }
+
         close(cfd);
 
         cfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -120,13 +150,8 @@ int main()
         s_add.sin_port=htons(port);
         printf("s_addr = %#x ,port : %#x\r\n",s_add.sin_addr.s_addr,s_add.sin_port);
 
-        delete[] userName;
-        delete[] userName2;
-        delete[] message;
-        userName = new char[101];
-        userName2 = new char[101];
-        message = new char[101];
-        cin >> t >> userName >> userName2 >> message;
+        cout << "Pleast enter type, operating and user_name: " << endl;
+        cin >> t >> op >> user_name;
 
         if(-1 == connect(cfd,(struct sockaddr *)(&s_add), sizeof(struct sockaddr)))
         {

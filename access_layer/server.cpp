@@ -3,7 +3,7 @@
 #define port 8192   //服务器接入层端口
 #define MAX_EVENTS 10000    //最大事件数
 
-int main()
+int main(int argc, char *argv[])
 {
     int sfp, nfp;   //sfp为 server用于监听的socket，nfp为server在accept到请求后的socket
     struct sockaddr_in s_add,c_add;

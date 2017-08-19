@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <stdio.h>
-#include  <pthread.h>
-#include  <sys/epoll.h>
+#include <pthread.h>
+#include <sys/epoll.h>
 #include <cstring>
 #include <queue>
 #include <asm/errno.h>
@@ -41,7 +41,7 @@ void * task_handler(void * para)
 
             if(-1 == (recbytes = read(tmpfd,buffer,1024)))
             {
-                cout << "Fail to read from client!" << endl;
+                cerr << "Fail to read from client!" << endl;
                 //continue;
             }
             buffer[recbytes]='\0';
@@ -50,7 +50,7 @@ void * task_handler(void * para)
 
             if(-1 == write(tmpfd, buf, 1024))
             {
-                cout << "Fail to write to client!" << endl;
+                cerr << "Fail to write to client!" << endl;
             }
 
             delete[] buffer;
@@ -61,7 +61,7 @@ void * task_handler(void * para)
         }
         catch(exception e)
         {
-            cout << "Access layer down once!" << endl;
+            cerr << "Access layer down once!" << endl;
         }
 
     }

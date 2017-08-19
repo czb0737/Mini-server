@@ -32,14 +32,14 @@ char *access_handle(char *buffer)
 
     if(-1 == write(sock, buffer, 1024))
     {
-        cout << "Fail to write to client!" << endl;
+        cerr << "Fail to write to client!" << endl;
     }
 
     char *buf = new char[1024];
 
     if(-1 == (recbytes = read(sock,buf,1024)))
     {
-        cout << "Fail to read from client!" << endl;
+        cerr << "Fail to read from client!" << endl;
     }
     buffer[recbytes]='\0';
 
