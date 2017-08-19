@@ -1,0 +1,21 @@
+(1)type:
+	1.user
+	2.friend
+	3.message
+(2)operating:
+	user:
+		1.reg
+		2.login
+	friend:
+		1.getFriends
+		2.addFriend
+		3.deleteFriend
+		4.searchFriend
+	message:
+		1.sendMsg
+		2.getMsg
+(3)content:
+	user:userName
+	friend:friendName
+	message:msg
+(4)token
