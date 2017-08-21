@@ -6,6 +6,7 @@
 #include <cstring>
 #include <queue>
 #include <asm/errno.h>
+#include <string>
 #include "access_handler.cpp"
 
 pthread_t *pid;
@@ -19,7 +20,7 @@ struct epoll_event *events; //epoll事件集
 void * task_handler(void * para)
 {
     struct epoll_event event;   //临时epoll事件变量
-    while(1)
+    while(true)
     {
         pthread_mutex_lock(&mutex); //获取互斥锁
 
@@ -33,7 +34,6 @@ void * task_handler(void * para)
         task_queue_in.pop();
 
         pthread_mutex_unlock(&mutex);   //放开互斥锁
-
         try
         {
             char *buffer = new char[1024];
@@ -45,7 +45,7 @@ void * task_handler(void * para)
                 //continue;
             }
             buffer[recbytes]='\0';
-
+            
             char *buf = access_handle(buffer);
 
             if(-1 == write(tmpfd, buf, 1024))

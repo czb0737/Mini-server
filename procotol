@@ -18,10 +18,10 @@
 		4.searchFriend
 			userName | friend_name | token
 	message:
-		1.sendMsg
-			userName | friend_name | message | token
-		2.getMsg
+		1.getMsg
 			uesrName | token
+		2.sendMsg
+			userName | friend_name | message | token
 (3)content:
 	user:userName
 	friend:friendName

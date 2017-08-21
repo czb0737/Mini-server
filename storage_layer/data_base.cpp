@@ -33,7 +33,7 @@ char *get_data_from_db(char sql[])
     /* send SQL query */
     if (result = mysql_query(conn, sql))
     {
-        cout << "Fail to read it!" << endl;
+        cerr << "Fail to read it!" << endl;
         cJSON_AddNumberToObject(json, "result", result);
         ret = cJSON_Print(json);
         return ret;

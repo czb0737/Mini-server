@@ -66,15 +66,15 @@ void * task_handler(void * para)
                 //continue;
             }
             buffer[recbytes]='\0';
-            cout << buffer << endl;
+            // cout << buffer << endl;
 
             char *buf = get_data_from_db(buffer);
-            cout << buf << endl;
+            // cout << buf << endl;
             int tt;
 
             if(-1 == (tt = write(tmpfd, buf, 1024)))
             {
-                cout << "Fail to write!" << endl;
+                cerr << "Fail to write!" << endl;
             }
 
             delete[] buf;
@@ -84,7 +84,7 @@ void * task_handler(void * para)
         }
         catch(exception e)
         {
-            cout << "Storage layer down once!" << endl;
+            cerr << "Storage layer down once!" << endl;
         }
     }
 

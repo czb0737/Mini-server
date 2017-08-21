@@ -59,9 +59,9 @@ int main(int argc, char *argv[])
     epoll_ctl(epfd, EPOLL_CTL_ADD, sfp, &event);
 
 
-    while(1)
+    while(true)
     {
-        int nfds = epoll_wait(epfd, events, MAX_EVENTS, 5);
+        int nfds = epoll_wait(epfd, events, MAX_EVENTS, 5000);
 
         for(int i = 0; i < nfds; ++i)
         {

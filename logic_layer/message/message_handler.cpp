@@ -29,7 +29,7 @@ char *message_handle(char *buffer)
 
     if(-1 == write(sock, res, 1024))
     {
-        cout << "Fail to write to storage!" << endl;
+        cerr << "Fail to write to storage!" << endl;
     }
 
     delete[] res;
@@ -38,7 +38,7 @@ char *message_handle(char *buffer)
 
     if(-1 == (bytes = read(sock, res, 1024)))
     {
-        cout << "Fail to read from storage!" << endl;
+        cerr << "Fail to read from storage!" << endl;
     }
     close(sock);
     res[bytes] = '\0';

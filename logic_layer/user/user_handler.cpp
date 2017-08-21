@@ -29,7 +29,7 @@ char *user_handle(char *buffer)
     {
         int sock = connect_to_server(port_low);
         string str = (string)"select userName from User where userName='" + cJSON_GetObjectItem(json, "userName")->valuestring + "'";
-        cout << str << endl;
+        // cout << str << endl;
         char *res = transfer_string_to_char(str);
         str.clear();
 
@@ -78,7 +78,7 @@ char *user_handle(char *buffer)
         }
         else
         {
-            str = (string)"insert into User values('" + cJSON_GetObjectItem(json, "userName")->valuestring + "','" + cJSON_GetObjectItem(json, "password")->valuestring + "','')";
+            str = (string)"insert into User(userName, password, token) values('" + cJSON_GetObjectItem(json, "userName")->valuestring + "','" + cJSON_GetObjectItem(json, "password")->valuestring + "','')";
             res = transfer_string_to_char(str);
             str.clear();
             sock = connect_to_server(port_low);

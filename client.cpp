@@ -73,10 +73,10 @@ int main()
     cout << "Pleast enter type, operating and user_name: " << endl;
     cin >> t >> op >> user_name;
 
-    while(1)
+    while(true)
     {
         Json json;
-        json["typer"] = t;
+        json["type"] = t;
         json["operating"] = op;
         json["userName"] = user_name;
         if (t == 1)

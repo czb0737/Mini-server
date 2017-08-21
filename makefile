@@ -1,6 +1,6 @@
 CC = g++ -o
 PT = -pthread
-DB = -L./storage_layer -lmysqlclient
+DB = -L./lib -lmysqlclient
 
 install:
 	$(CC) ./access_layer/server $(PT) ./access_layer/server.cpp
