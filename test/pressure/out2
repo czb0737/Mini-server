@@ -1,7 +1,4 @@
 Hello, welcome to client!
 Socket ok!
 s_addr = 0x100007f ,port : 0x20
-connect ok !
-Test: 1 2 czb2 czb
-{"operating":2,"password":"czb","type":1,"userName":"czb2"}
-read data fail !
+connect fail !

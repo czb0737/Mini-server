@@ -19,6 +19,7 @@ int connect_to_server(int port2)
     struct sockaddr_in s_add, c_add;
 
     cfd = socket(AF_INET, SOCK_STREAM, 0);
+    // cout << "Socket ID: " << cfd << endl;
     if(cfd == -1)
     {
         cerr << "Socket fail!" << endl;
@@ -32,7 +33,7 @@ int connect_to_server(int port2)
 
     if(-1 == connect(cfd,(struct sockaddr *)(&s_add), sizeof(struct sockaddr)))
     {
-        cerr << "connect fail !\r\n" << endl;
+        cerr << "Access connect fail !\r\n" << endl;
         return -1;
     }
 

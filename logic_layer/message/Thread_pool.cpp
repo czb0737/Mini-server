@@ -7,10 +7,11 @@
 //#include <string.h>
 //#include <arpa/inet.h>
 //#include <unistd.h>
-#include  <pthread.h>
-#include  <sys/epoll.h>
+#include <pthread.h>
+#include <sys/epoll.h>
 #include <cstring>
 #include <queue>
+#include <vector>
 #include <asm/errno.h>
 #include "message_handler.cpp"
 
@@ -20,12 +21,17 @@ pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 queue<int> task_queue_in; //任务队列
 int epfd;    //新建epoll文件描述符
 struct epoll_event *events; //epoll事件集
+// vector<int> socks;
 
 //任务处理线程
 void * task_handler(void * para)
 {
     struct epoll_event event;   //临时epoll事件变量
-    while(1)
+    sleep(2);
+    pthread_mutex_lock(&mutex);
+    int sock = connect_to_server(port_low);
+    pthread_mutex_unlock(&mutex);
+    while(true)
     {
         pthread_mutex_lock(&mutex); //获取互斥锁
 
@@ -47,22 +53,22 @@ void * task_handler(void * para)
 
             if(-1 == (recbytes = read(tmpfd,buffer,1024)))
             {
-                cout << "Fail to read from client!" << endl;
+                cout << "Fail to read from client! Message" << endl;
                 //continue;
             }
             buffer[recbytes]='\0';
 
-            char *buf = message_handle(buffer);
+            char *buf = message_handle(buffer, sock);
             bool ifWrite = false;
 
-            if(-1 == (ifWrite = write(tmpfd, buf, 1024)))
+            if(ifWrite = (-1 == write(tmpfd, buf, 1024)))
             {
-                cout << "Fail to write to client!" << endl;
+                cout << "Fail to write to client! Message" << endl;
             }
 
             if(1 == cJSON_GetObjectItem(cJSON_Parse(buffer), "operating")->valueint && true == ifWrite)
             {
-                if(0 == deleteMsg(buf))
+                if(0 == deleteMsg(buf, sock))
                 {
                     cout << "Fail to delete the message!" << endl;
                 }
@@ -80,6 +86,7 @@ void * task_handler(void * para)
         }
 
     }
+    close(sock);
 
 }
 
@@ -91,7 +98,9 @@ void thread_pool_init(int thread_num = 10)
     for(int i = 0; i < thread_num; ++i)
     {
         int err = 0;
-        err = pthread_create(&pid[i], NULL, task_handler, NULL);    //建立线程池
+        err = pthread_create(&pid[i], NULL, task_handler, (void *)(new int(i)));    //建立线程池
+        // usleep(200000);
+        // socks.push_back(connect_to_server(port_low));
         if(0 != err)
         {
             cerr << "Fail to create threads because of: " << strerror(err) <<endl;

@@ -1,5 +1,6 @@
 #include <string.h>
 #include <time.h>
+#include <errno.h>
 #include "cJSON.c"
 #include "connect.cpp"
 
@@ -14,22 +15,24 @@ char *transfer_string_to_char(string s)
     return c;
 }
 
-char *message_handle(char *buffer)
+char *message_handle(char *buffer, int &sock)
 {
+    // sock = connect_to_server(port_low);
+
     int bytes = 0;
     cJSON *json;
     cJSON *json2;
     json = cJSON_Parse(buffer);
 
     //验证用户token
-    int sock = connect_to_server(port_low);
     string str = (string)"select token from User where userName='" + cJSON_GetObjectItem(json, "userName")->valuestring + "'";
     char *res = transfer_string_to_char(str);
     str.clear();
 
     if(-1 == write(sock, res, 1024))
     {
-        cerr << "Fail to write to storage!" << endl;
+        cerr << "Fail to write to storage!$" << endl;
+        cerr << strerror(errno) << endl;
     }
 
     delete[] res;
@@ -40,9 +43,8 @@ char *message_handle(char *buffer)
     {
         cerr << "Fail to read from storage!" << endl;
     }
-    close(sock);
     res[bytes] = '\0';
-
+    // cout << "Response: " << res << endl;
     json2 = cJSON_Parse(res);
 
     delete[] res;   //指针res本次生命周期到此结束
@@ -87,14 +89,14 @@ char *message_handle(char *buffer)
 
     if(getMsg == operating)
     {
-        sock = connect_to_server(port_low);
         str = (string)"select * from Message where toUser='" + cJSON_GetObjectItem(json, "userName")->valuestring + "'";
         res = transfer_string_to_char(str);
         str.clear();
 
         if(-1 == write(sock, res, 1024))
         {
-            cout << "Fail to write to storage!" << endl;
+            cout << "Fail to write to storage!#" << endl;
+            cerr << strerror(errno) << endl;
         }
 
         delete[] res;
@@ -105,7 +107,6 @@ char *message_handle(char *buffer)
         {
             cout << "Fail to read from storage!" << endl;
         }
-        close(sock);
         res[bytes] = '\0';
 
         json2 = cJSON_Parse(res);
@@ -143,16 +144,16 @@ char *message_handle(char *buffer)
     }
     else if(sendMsg == operating)
     {
-        sock = connect_to_server(port_low);
         str = (string)"insert into Message(fromUser,toUser,message) values('" + cJSON_GetObjectItem(json, "userName")->valuestring + "','" + cJSON_GetObjectItem(json, "userName2")->valuestring + "','" + cJSON_GetObjectItem(json, "message")->valuestring + "')";
         res = transfer_string_to_char(str);
         str.clear();
-
+        // cout << "After verification: " << res << endl;
         if(-1 == write(sock, res, 1024))
         {
-            cout << "Fail to write to storage!" << endl;
+            cout << "Fail to write to storage!@" << endl;
+            cerr << strerror(errno) << endl;
         }
-
+        // cout << "Write success!" << endl;
         delete[] res;
         res = NULL;
         res = new char[1024];
@@ -161,9 +162,8 @@ char *message_handle(char *buffer)
         {
             cout << "Fail to read from storage!" << endl;
         }
-        close(sock);
         res[bytes] = '\0';
-
+        // cout << "Response 2: " << res << endl;
         json2 = cJSON_Parse(res);
 
         delete[] res;   //指针res本次生命周期到此结束
@@ -186,14 +186,13 @@ char *message_handle(char *buffer)
         cJSON_AddNumberToObject(json2, "result", 1);
         cJSON_AddStringToObject(json2, "extra", "Wrong operating!");
     }
-
     char *ret = cJSON_Print(json2);
     cJSON_Delete(json2);
     return ret;
 
 }
 
-bool deleteMsg(char *buf)
+bool deleteMsg(char *buf, int sock)
 {
     int bytes = 0;
     cJSON *json;
@@ -205,7 +204,6 @@ bool deleteMsg(char *buf)
     while(tmpjs != NULL)
     {
         //cJSON *tmpjs2 = cJSON_GetArrayItem(tmpjs, i);
-        int sock = connect_to_server(port_low);
         string str = (string)"delete from Message where nowTime='" + cJSON_GetObjectItem(tmpjs, "nowTime")->valuestring + "'";
         char *res = transfer_string_to_char(str);
         str.clear();
@@ -225,7 +223,6 @@ bool deleteMsg(char *buf)
         {
             cout << "Fail to read from storage!" << endl;
         }
-        close(sock);
         res[bytes] = '\0';
 
         json2 = cJSON_Parse(res);

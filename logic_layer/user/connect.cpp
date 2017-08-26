@@ -32,7 +32,7 @@ int connect_to_server(int port2)
         cout << "connect fail !\r\n" << endl;
         return -1;
     }
-
+    // cout << "User call connect: " << cfd << endl;
     return cfd;
 }
 

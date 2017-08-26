@@ -68,7 +68,7 @@ int main()
             if(events[i].data.fd == sfp)
             {
                 nfp = accept(sfp, (struct sockaddr *)(&c_add), &sin_size);
-                cout << "User module accept!" << endl;
+                // cout << "User module accept!" << endl;
                 if(-1 == nfp)
                 {
                     printf("Fail to accept!\n");

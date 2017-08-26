@@ -11,7 +11,8 @@
 #include <sys/epoll.h>
 #include <cstring>
 #include <queue>
-#include <asm/errno.h>
+#include <set>
+// #include <asm/errno.h>
 //#include "cJSON.c"
 //#include "connect.cpp"
 #include "data_base.cpp"
@@ -35,6 +36,7 @@ pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 queue<int> task_queue_in;//, task_queue_out; //任务队列
 int epfd;    //新建epoll文件描述符
 struct epoll_event *events; //epoll事件集
+set<int> unhandle_fds;
 
 //任务处理线程
 void * task_handler(void * para)
@@ -52,6 +54,7 @@ void * task_handler(void * para)
         //For handler
         int tmpfd = task_queue_in.front();
         task_queue_in.pop();
+        unhandle_fds.erase(tmpfd);
 
         pthread_mutex_unlock(&mutex);   //放开互斥锁
 
@@ -66,6 +69,7 @@ void * task_handler(void * para)
                 //continue;
             }
             buffer[recbytes]='\0';
+            // cout << "Storage read: " << buffer << endl;
             // cout << buffer << endl;
 
             char *buf = get_data_from_db(buffer);
@@ -79,8 +83,8 @@ void * task_handler(void * para)
 
             delete[] buf;
 
-            epoll_ctl(epfd, EPOLL_CTL_DEL, tmpfd, NULL);
-            close(tmpfd);
+            // epoll_ctl(epfd, EPOLL_CTL_DEL, tmpfd, NULL);
+            // close(tmpfd);
         }
         catch(exception e)
         {

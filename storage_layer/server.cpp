@@ -68,26 +68,34 @@ int main()
             if(events[i].data.fd == sfp)
             {
                 nfp = accept(sfp, (struct sockaddr *)(&c_add), &sin_size);
-
+                // cout << "Storage accept fd IDs: " << nfp << endl;
                 if(-1 == nfp)
                 {
                     printf("Fail to accept!\n");
                 }
 
                 event.data.fd = nfp;
-                event.events = EPOLLIN | EPOLLONESHOT;
+                event.events = EPOLLIN;// | EPOLLONESHOT;
                 epoll_ctl(epfd, EPOLL_CTL_ADD, nfp, &event);
 
             }
 
             else if(events[i].events & EPOLLIN)
             {
+                // cout << "Storage epoll: " << events[i].data.fd << endl;
+                int sockfd = events[i].data.fd;
                 //构造任务
                 //通过互斥锁把任务放到任务队列里
                 pthread_mutex_lock(&mutex);
-                task_queue_in.push(events[i].data.fd);  //把任务放到任务队列里面
+                if (unhandle_fds.find(sockfd) == unhandle_fds.end())
+                {
+                    task_queue_in.push(sockfd);  //把任务放到任务队列里面
+                    unhandle_fds.insert(sockfd);
+                }
+                // cout << "Storage queue size: " << task_queue_in.size() << endl;
                 pthread_cond_broadcast(&cond);
                 pthread_mutex_unlock(&mutex);
+                // epoll_ctl(epfd, EPOLL_CTL_ADD, events[i].data.fd, NULL);
 
    /*             //删除掉对应的epoll事件
                 event.data.fd = tmpfd;
@@ -100,7 +108,6 @@ int main()
     }
     close(sfp);
     close(epfd);
-    free(events);
+    delete events;
     return 0;
 }
-

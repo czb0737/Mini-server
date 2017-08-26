@@ -4,7 +4,15 @@ ConnectionPool *ConnectionPool::instance = nullptr;
 
 ConnectionPool::ConnectionPool()
 {
-    this->driver = sql::mysql::get_driver_instance();
+    try
+    {
+        this->driver = sql::mysql::get_driver_instance();
+    }
+    catch (SQLException e)
+    {
+        cerr << "Fail to get driver!" << endl;
+    }
+    this->initialConnections();
 }
 
 void ConnectionPool::initialConnections()
@@ -12,21 +20,26 @@ void ConnectionPool::initialConnections()
     pthread_mutex_lock(&lock);
     for (int i = 0; i < INITIAL_SIZE; ++i)
     {
-        this->createConnection();
+        Connection *conn = this->createConnection();
+        if (conn != nullptr)
+        {
+            connections.push(conn);
+        }
     }
     pthread_mutex_unlock(&lock);
+    this->cur_size = INITIAL_SIZE;
 }
 
-void ConnectionPool::createConnection()
+Connection * ConnectionPool::createConnection()
 {
     int try_time = 3;
     while (try_time--)
     {
         try
         {
-            this->connections.push(driver->connect(HOST, USER, PASSWORD));
-            this->connections.back()->setSchema("chat");
-            return;
+            Connection *conn = driver->connect(HOST, USER, PASSWORD);
+            conn->setSchema(DATABASE);
+            return conn;
         }
         catch(sql::SQLException e)
         {
@@ -35,6 +48,59 @@ void ConnectionPool::createConnection()
             sleep(1);
             pthread_mutex_lock(&lock);
         }
+    }
+    return nullptr;
+}
+
+Connection * ConnectionPool::getConnection()
+{
+    pthread_mutex_lock(&lock);
+    if (connections.empty())
+    {
+        if (cur_size < MAX_SIZE)
+        {
+            Connection *conn = createConnection();
+            if (conn == nullptr)
+            {
+                pthread_mutex_unlock(&lock);
+                return nullptr;
+            }
+            else
+            {
+                ++cur_size;
+                pthread_mutex_unlock(&lock);
+                return conn;
+            }
+        }
+        else
+        {
+            cout << "GetConnection: The size of the connection pool has reached the maximum!" << endl;
+            pthread_mutex_unlock(&lock);
+            return nullptr;
+        }
+    }
+    else
+    {
+        Connection *conn = nullptr;
+        while (!connections.empty() && conn == nullptr)
+        { 
+            conn = connections.front();
+            connections.pop();
+            // Delete the closed connection in the front of the connection queue
+            if (conn->isClosed())
+            {
+                delete conn;
+                conn = nullptr;
+                --cur_size;
+            }
+        }
+        if (conn == nullptr)
+        {
+            conn = createConnection();
+            ++cur_size;
+        }
+        pthread_mutex_unlock(&lock);
+        return conn;
     }
 }
 

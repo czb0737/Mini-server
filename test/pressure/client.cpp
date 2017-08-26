@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <stdio.h>
 #include <sys/socket.h>
@@ -15,6 +16,7 @@
 #include <fstream>
 #include "split.cpp"
 #include <vector>
+#include "../../access_layer/connect.cpp"
 
 /*
 #include <stdio.h>
@@ -48,27 +50,6 @@ int main(int argc, char *argv[])
 
     cout << "Hello, welcome to client!" << endl;
 
-    cfd = socket(AF_INET, SOCK_STREAM, 0);
-    if(cfd == -1)
-    {
-        cout << "Socket fail!" << endl;
-        return -1;
-    }
-    cout << "Socket ok!" << endl;
-
-    bzero(&s_add,sizeof(struct sockaddr_in));
-    s_add.sin_family=AF_INET;
-    s_add.sin_addr.s_addr= inet_addr(server_ip);
-    s_add.sin_port=htons(port);
-    printf("s_addr = %#x ,port : %#x\r\n",s_add.sin_addr.s_addr,s_add.sin_port);
-
-    if(-1 == connect(cfd,(struct sockaddr *)(&s_add), sizeof(struct sockaddr)))
-    {
-        printf("connect fail !\r\n");
-        return -1;
-    }
-    printf("connect ok !\r\n");
-
     // Open file
     fstream file(argv[1]);
 
@@ -81,9 +62,12 @@ int main(int argc, char *argv[])
     // cout << "Pleast enter type, operating and user_name: " << endl;
     // file >> t >> op >> user_name;
     string ss;
+    int count = 0;
 
     while(getline(file, ss, '\n'))
     {
+        cout << "Count: " << count++ << endl;
+        // if (count++ > 1050) break;
         cout << "Test: " << ss << endl;
         vector<string> v = split(ss, ' ');
         t = stoi(v[0]);
@@ -110,6 +94,8 @@ int main(int argc, char *argv[])
             json["userName2"] = v[3];
             json["message"] = v[4];
         }
+
+        cfd = connect_to_server(port);
 
         string s = json.dump();
         cout << s << endl;
@@ -141,32 +127,7 @@ int main(int argc, char *argv[])
             auto j = Json::parse(buffer);
             token = j["token"];
         }
-
-        close(cfd);
-
-        cfd = socket(AF_INET, SOCK_STREAM, 0);
-        if(cfd == -1)
-        {
-            cout << "Socket fail!" << endl;
-            return -1;
-        }
-        cout << "Socket ok!" << endl;
-
-        bzero(&s_add,sizeof(struct sockaddr_in));
-        s_add.sin_family=AF_INET;
-        s_add.sin_addr.s_addr= inet_addr(server_ip);
-        s_add.sin_port=htons(port);
-        printf("s_addr = %#x ,port : %#x\r\n",s_add.sin_addr.s_addr,s_add.sin_port);
-
-        // cout << "Pleast enter type, operating and user_name: " << endl;
-        // file >> t >> op >> user_name;
-
-        if(-1 == connect(cfd,(struct sockaddr *)(&s_add), sizeof(struct sockaddr)))
-        {
-            printf("connect fail !\r\n");
-            return -1;
-        }
-        printf("connect ok !\r\n");
+        usleep(5000);
     }
 
     close(cfd);

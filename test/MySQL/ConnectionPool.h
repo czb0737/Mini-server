@@ -24,26 +24,31 @@
 #include <cppconn/prepared_statement.h> 
 
 using namespace std;
+using namespace sql;
 
 const string HOST = "localhost";
 const string USER = "root";
 const string PASSWORD = "czb";
+const string DATABASE = "chat";
 
 class ConnectionPool
 {
 private:
 	const int INITIAL_SIZE = 10;
+	const int MAX_SIZE = 1000;
 
+	int cur_size;
 	sql::mysql::MySQL_Driver *driver;
 	static ConnectionPool *instance;
-	queue<sql::Connection *> connections;
+	queue<Connection *> connections;
 	pthread_mutex_t lock;
 	void initialConnections();
 
     ConnectionPool();
 
 public:
-	void createConnection();
+	Connection * createConnection();
+	Connection * getConnection();
     vector<string> getData(string sql);
 	static ConnectionPool * getInstance();
 };

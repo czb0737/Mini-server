@@ -10,7 +10,7 @@ using namespace std;
 #define server_ip "127.0.0.1"
 #define port_low 8196
 
-int connect_to_server(int port2)
+inline int connect_to_server(int port2)
 {
     int cfd = 0;
     struct sockaddr_in s_add, c_add;
@@ -29,7 +29,7 @@ int connect_to_server(int port2)
 
     if(-1 == connect(cfd,(struct sockaddr *)(&s_add), sizeof(struct sockaddr)))
     {
-        cout << "connect fail !\r\n" << endl;
+        cout << "Message connect fail !\r\n" << endl;
         return -1;
     }
 

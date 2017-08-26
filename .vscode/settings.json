@@ -3,6 +3,8 @@
         "system_error": "cpp",
         "ostream": "cpp",
         "iostream": "cpp",
-        "*.tcc": "cpp"
+        "*.tcc": "cpp",
+        "exception": "cpp",
+        "cerrno": "cpp"
     }
 }

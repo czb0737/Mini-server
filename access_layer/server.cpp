@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
             if(events[i].data.fd == sfp)
             {
                 nfp = accept(sfp, (struct sockaddr *)(&c_add), &sin_size);
-
+                // cout << "Access layer accept!" << endl;
                 if(-1 == nfp)
                 {
                     printf("Fail to accept!\n");
@@ -82,6 +82,7 @@ int main(int argc, char *argv[])
 
             else if(events[i].events & EPOLLIN)
             {
+                // cout << "Access epoll: " << events[i].data.fd << endl;
                 int sockfd = events[i].data.fd;
 
                 //通过互斥锁把任务放到任务队列里

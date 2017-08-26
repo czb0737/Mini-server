@@ -25,7 +25,12 @@ struct epoll_event *events; //epoll事件集
 void * task_handler(void * para)
 {
     struct epoll_event event;   //临时epoll事件变量
-    while(1)
+    sleep(2);
+    pthread_mutex_lock(&mutex);
+    int sock = connect_to_server(port_low);
+    pthread_mutex_unlock(&mutex);
+    // cout << "User: Thread #" << *((int *)para) << " fd: " << sock << endl; 
+    while(true)
     {
         pthread_mutex_lock(&mutex); //获取互斥锁
 
@@ -39,7 +44,7 @@ void * task_handler(void * para)
         task_queue_in.pop();
 
         pthread_mutex_unlock(&mutex);   //放开互斥锁
-
+        // cout << "Thread #" << *((int *)para) << endl; 
         try
         {
             char *buffer = new char[1024];
@@ -51,8 +56,8 @@ void * task_handler(void * para)
                 //continue;
             }
             buffer[recbytes]='\0';
-
-            char *buf = user_handle(buffer);
+            // cout << "User: Request from access: " << endl << buffer << endl;
+            char *buf = user_handle(buffer, sock);
 
             if(-1 == write(tmpfd, buf, 1024))
             {
@@ -69,8 +74,9 @@ void * task_handler(void * para)
         {
             cout << "User module down once!" << endl;
         }
-
+        // cout << "Finish a request! #" << *((int *)para) << endl;
     }
+    close(sock);
 
 }
 
@@ -82,14 +88,13 @@ void thread_pool_init(int thread_num = 10)
     for(int i = 0; i < thread_num; ++i)
     {
         int err = 0;
-        err = pthread_create(&pid[i], NULL, task_handler, NULL);    //建立线程池
+        err = pthread_create(&pid[i], NULL, task_handler, (void *)(new int(i)));    //建立线程池
         if(0 != err)
         {
             cerr << "Fail to create threads because of: " << strerror(err) <<endl;
         }
     }
 }
-
 
 
 

@@ -16,7 +16,7 @@ char *transfer_string_to_char(string s)
     return c;
 }
 
-char *user_handle(char *buffer)
+char *user_handle(char *buffer, int &sock)
 {
     int bytes = 0;
     cJSON *json;
@@ -27,7 +27,7 @@ char *user_handle(char *buffer)
 
     if(reg == operating)
     {
-        int sock = connect_to_server(port_low);
+        // sock = connect_to_server(port_low);
         string str = (string)"select userName from User where userName='" + cJSON_GetObjectItem(json, "userName")->valuestring + "'";
         // cout << str << endl;
         char *res = transfer_string_to_char(str);
@@ -46,7 +46,7 @@ char *user_handle(char *buffer)
         {
             cout << "Fail to read from storage!" << endl;
         }
-        close(sock);
+        // close(sock);
         res[bytes] = '\0';
 
         json2 = cJSON_Parse(res);
@@ -81,7 +81,7 @@ char *user_handle(char *buffer)
             str = (string)"insert into User(userName, password, token) values('" + cJSON_GetObjectItem(json, "userName")->valuestring + "','" + cJSON_GetObjectItem(json, "password")->valuestring + "','')";
             res = transfer_string_to_char(str);
             str.clear();
-            sock = connect_to_server(port_low);
+            // sock = connect_to_server(port_low);
 
             if(-1 == write(sock, res, 1024))
             {
@@ -96,7 +96,7 @@ char *user_handle(char *buffer)
             {
                 cout << "Fail to read from storage!" << endl;
             }
-            close(sock);
+            // close(sock);
             res[bytes] = '\0';
 
             json2 = cJSON_Parse(res);
@@ -120,15 +120,16 @@ char *user_handle(char *buffer)
     }
     else if(login == operating)
     {
-        int sock = connect_to_server(port_low);
+        // sock = connect_to_server(port_low);
         string str = (string)"select userName,password from User where userName='" + cJSON_GetObjectItem(json, "userName")->valuestring + "'";
         char *res = transfer_string_to_char(str);
         str.clear();
-
+        // cout << "User: Before write!" << endl;
         if(-1 == write(sock, res, 1024))
         {
             cout << "Fail to write to storage!" << endl;
         }
+        // cout << "User: After write!" << endl;
 
         delete[] res;
         res = NULL;
@@ -138,8 +139,9 @@ char *user_handle(char *buffer)
         {
             cout << "Fail to read from storage!" << endl;
         }
-        close(sock);
+        // close(sock);
         res[bytes] = '\0';
+        // cout << "User: After read! Res: " << endl << res << endl;
 
         json2 = cJSON_Parse(res);
 
@@ -175,7 +177,7 @@ char *user_handle(char *buffer)
             tmp[10] = '\0';
             char *tmp2 = MDString(tmp);
 
-            sock = connect_to_server(port_low);
+            // sock = connect_to_server(port_low);
             string str = (string)"update User set token='" + tmp2 + "' where userName='" + cJSON_GetObjectItem(json, "userName")->valuestring + "'";
             char *res = transfer_string_to_char(str);
             str.clear();
@@ -193,7 +195,7 @@ char *user_handle(char *buffer)
             {
                 cout << "Fail to read from storage!" << endl;
             }
-            close(sock);
+            // close(sock);
             res[bytes] = '\0';
 
             json2 = cJSON_Parse(res);
