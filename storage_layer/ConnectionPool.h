@@ -9,7 +9,6 @@
 #define CONNECTION_POOL_H
 
 #include <iostream>
-#include <vector>
 #include <queue>
 #include <string>
 #include <pthread.h>

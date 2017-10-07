@@ -1,4 +1,4 @@
-#include "Thread_pool.cpp"
+#include "ThreadPool.h"
 
 #define port 8196   //服务器接入层端口
 #define MAX_EVENTS 10000    //最大事件数
@@ -71,11 +71,11 @@ int main()
                 // cout << "Storage accept fd IDs: " << nfp << endl;
                 if(-1 == nfp)
                 {
-                    printf("Fail to accept!\n");
+                    printf("Storage fail to accept!\n");
                 }
 
                 event.data.fd = nfp;
-                event.events = EPOLLIN;// | EPOLLONESHOT;
+                event.events = EPOLLIN | EPOLLET;
                 epoll_ctl(epfd, EPOLL_CTL_ADD, nfp, &event);
 
             }
@@ -87,11 +87,11 @@ int main()
                 //构造任务
                 //通过互斥锁把任务放到任务队列里
                 pthread_mutex_lock(&mutex);
-                if (unhandle_fds.find(sockfd) == unhandle_fds.end())
-                {
+                // if (unhandle_fds.find(sockfd) == unhandle_fds.end())
+                // {
                     task_queue_in.push(sockfd);  //把任务放到任务队列里面
-                    unhandle_fds.insert(sockfd);
-                }
+                //     unhandle_fds.insert(sockfd);
+                // }
                 // cout << "Storage queue size: " << task_queue_in.size() << endl;
                 pthread_cond_broadcast(&cond);
                 pthread_mutex_unlock(&mutex);

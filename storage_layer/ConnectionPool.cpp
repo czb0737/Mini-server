@@ -165,17 +165,17 @@ int ConnectionPool::getSize()
 
 vector<string> ConnectionPool::getData(string sql)
 {
-    sql::PreparedStatement *prep_stmt = this->connections.front()->prepareStatement(sql);
-    sql::ResultSet *res = prep_stmt->executeQuery();
     vector<string> data;
-    string s;
-    while (res->next())
-    {
-        s.clear();
-        s.append(to_string(res->getInt("userId")) + "\t").append(res->getString("userName") + "\t").append(res->getString("password"));
-        data.push_back(s);
-    }
-    delete res;
-    delete prep_stmt;
+    // sql::PreparedStatement *prep_stmt = this->connections.front()->prepareStatement(sql);
+    // sql::ResultSet *res = prep_stmt->executeQuery();
+    // string s;
+    // while (res->next())
+    // {
+    //     s.clear();
+    //     s.append(to_string(res->getInt("userId")) + "\t").append(res->getString("userName") + "\t").append(res->getString("password"));
+    //     data.push_back(s);
+    // }
+    // delete res;
+    // delete prep_stmt;
     return data;
 }
