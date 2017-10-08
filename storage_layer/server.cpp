@@ -1,7 +1,10 @@
 #include "ThreadPool.h"
+#include "storageHandler.h"
 
 #define port 8196   //服务器接入层端口
 #define MAX_EVENTS 10000    //最大事件数
+
+ThreadPool *thread_pool = nullptr;
 
 int main()
 {
@@ -43,21 +46,22 @@ int main()
     printf("listen ok\r\n");
 
     //新建epoll
-    epfd = epoll_create(MAX_EVENTS);
+    int epfd = epoll_create(MAX_EVENTS);
     if(-1 == epfd)
     {
         cout << "Succeed to create epoll !" <<endl;
     }
 
-    events = NULL;
+    struct epoll_event *events = NULL;
     events = new epoll_event[MAX_EVENTS];
 
-    thread_pool_init(20);
+    // Set up thread pool
+    thread_pool = ThreadPool::getInstance();
+    string (*ThreadPool::handler)(string &) = &storageHandler;
 
     event.data.fd = sfp;
     event.events = EPOLLIN;
     epoll_ctl(epfd, EPOLL_CTL_ADD, sfp, &event);
-
 
     while(1)
     {
@@ -82,25 +86,9 @@ int main()
 
             else if(events[i].events & EPOLLIN)
             {
-                // cout << "Storage epoll: " << events[i].data.fd << endl;
-                int sockfd = events[i].data.fd;
-                //构造任务
                 //通过互斥锁把任务放到任务队列里
-                pthread_mutex_lock(&mutex);
-                // if (unhandle_fds.find(sockfd) == unhandle_fds.end())
-                // {
-                    task_queue_in.push(sockfd);  //把任务放到任务队列里面
-                //     unhandle_fds.insert(sockfd);
-                // }
-                // cout << "Storage queue size: " << task_queue_in.size() << endl;
-                pthread_cond_broadcast(&cond);
-                pthread_mutex_unlock(&mutex);
-                // epoll_ctl(epfd, EPOLL_CTL_ADD, events[i].data.fd, NULL);
-
-   /*             //删除掉对应的epoll事件
-                event.data.fd = tmpfd;
-                event.events = EPOLLIN;
-                epoll_ctl(epfd, EPOLL_CTL_DEL, tmpfd, &event);*/
+                int sockfd = events[i].data.fd;
+                thread_pool->addTask(sockfd);
             }
 
         }

@@ -40,7 +40,7 @@ private:
 	sql::mysql::MySQL_Driver *driver;
 	static ConnectionPool *instance;
 	queue<Connection *> connections;
-	pthread_mutex_t lock;
+	static pthread_mutex_t lock;
 	void initialConnections();
 	Connection * createConnection();
 	void terminateConnection(Connection *conn);

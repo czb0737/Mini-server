@@ -1,15 +1,14 @@
 #include "ThreadPool.h"
 
-pthread_t *pid;
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
-queue<int> task_queue_in;//, task_queue_out; //任务队列
-int epfd;    //新建epoll文件描述符
-struct epoll_event *events; //epoll事件集
-// set<int> unhandle_fds;
+// Static member initialization
+pthread_mutex_t ThreadPool::mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t ThreadPool::cond = PTHREAD_COND_INITIALIZER;
+queue<int> ThreadPool::task_queue_in;
+ThreadPool *ThreadPool::instance = nullptr;
+string (*ThreadPool::handler)(string &) = nullptr;
 
 //任务处理线程
-void * task_handler(void * para)
+void * ThreadPool::task_handler(void * para)
 {
     pthread_detach(pthread_self());
     while (true)
@@ -21,15 +20,11 @@ void * task_handler(void * para)
             pthread_cond_wait(&cond, &mutex);   //开放互斥锁，线程挂起
         }
 
-        //cout << "!" << endl;
         //For handler
         int tmpfd = task_queue_in.front();
         task_queue_in.pop();
-        // unhandle_fds.erase(tmpfd);
 
         pthread_mutex_unlock(&mutex);   //放开互斥锁
-        cout << "Thread: #" << *((int *)para) << endl;
-        cout << "Socket fd: #" << tmpfd << endl;
         string s;
         try
         {
@@ -39,19 +34,13 @@ void * task_handler(void * para)
             if(-1 == (recbytes = read(tmpfd,buffer,1024)))
             {
                 printf("read data fail2!\r\n");
-                //continue;
             }
             buffer[recbytes]='\0';
-            cout << "Storage read: " << buffer << endl;
-            // cout << buffer << endl;
-
-            // char *buf = get_data_from_db(buffer);
-            // cout << buf << endl;
             s = string(buffer);
-            s = storageHandler(s);
+            // s = storageHandler(s);
+            s = (*handler)(s);
             char *buf = new char[1024];
             copy(s.begin(), s.end(), buf);
-            cout << s << endl;
 
             int tt = 0;
             if(-1 == (tt = write(tmpfd, buf, 1024)))
@@ -60,31 +49,45 @@ void * task_handler(void * para)
             }
 
             delete[] buf;
-
-            // epoll_ctl(epfd, EPOLL_CTL_DEL, tmpfd, NULL);
-            // close(tmpfd);
         }
         catch(exception e)
         {
             cerr << "Storage layer down once!" << endl;
         }
-        cout << "Thread: #" << *((int *)para) << " finish! @@ " << s << endl;
     }
 
 }
 
 //初始化线程池
-void thread_pool_init(int thread_num = 10)
+ThreadPool::ThreadPool(int thread_num) : pids(thread_num)
 {
-    pid = new pthread_t[thread_num];
-
     for(int i = 0; i < thread_num; ++i)
     {
         int err = 0;
-        err = pthread_create(&pid[i], NULL, task_handler, (void *)(new int(i)));    //建立线程池
+        err = pthread_create(&pids[i], NULL, task_handler, nullptr);    //建立线程池
         if(0 != err)
         {
             cerr << "Fail to create threads because of: " << strerror(err) <<endl;
         }
     }
+}
+
+void ThreadPool::addTask(int fd)
+{
+    pthread_mutex_lock(&mutex);
+    task_queue_in.push(fd);  //把任务放到任务队列里面
+    pthread_cond_broadcast(&cond);
+    pthread_mutex_unlock(&mutex);
+}
+
+ThreadPool * ThreadPool::getInstance()
+{
+    if (instance == nullptr)
+    {
+        pthread_mutex_lock(&mutex);
+        if (instance == nullptr)
+            instance = new ThreadPool(10);
+        pthread_mutex_unlock(&mutex);
+    }
+    return instance;
 }

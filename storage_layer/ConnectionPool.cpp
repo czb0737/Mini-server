@@ -1,6 +1,7 @@
 #include "ConnectionPool.h"
 
 ConnectionPool *ConnectionPool::instance = nullptr;
+pthread_mutex_t ConnectionPool::lock = PTHREAD_MUTEX_INITIALIZER;
 
 ConnectionPool::ConnectionPool()
 {
@@ -122,7 +123,12 @@ void ConnectionPool::releaseConnection(Connection *conn)
 ConnectionPool * ConnectionPool::getInstance()
 {
     if (instance == nullptr)
-        instance = new ConnectionPool();
+    {
+        pthread_mutex_lock(&lock);
+        if (instance == nullptr)
+            instance = new ConnectionPool();
+        pthread_mutex_unlock(&lock);
+    }
     return instance;
 }
 
